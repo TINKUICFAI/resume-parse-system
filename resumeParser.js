@@ -62,7 +62,6 @@ function extractExperienceArray(text) {
       continue;
     }
 
-    // Match date line
     if (dateRegex.test(line)) {
       if (current) {
         current.duration = line
