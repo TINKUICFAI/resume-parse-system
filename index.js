@@ -3,7 +3,11 @@ const fileUpload = require("express-fileupload");
 const bodyParser = require("body-parser");
 const mime = require("mime-types");
 
-const { extractText, extractStructuredInfo } = require("./resumeParser");
+const {
+  extractText,
+  formatCandidateData,
+  extractStructuredInfo,
+} = require("./resumeParser");
 
 const app = express();
 const PORT = 5000;
@@ -21,11 +25,12 @@ app.post("/parse-resume", async (req, res) => {
 
     const resume = req.files.resume;
     const mimeType = mime.lookup(resume.name) || resume.mimetype;
-
     const text = await extractText(resume.data, mimeType);
-    const structured = extractStructuredInfo(text);
 
-    return res.status(200).json({ success: true, data: structured });
+    const parsedData = require("./resumeParser").extractStructuredInfo(text);
+    const response = formatCandidateData(resume, parsedData);
+
+    return res.status(200).json(response);
   } catch (err) {
     console.error("Error parsing resume:", err);
     res
