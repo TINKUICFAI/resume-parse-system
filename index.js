@@ -3,11 +3,8 @@ const fileUpload = require("express-fileupload");
 const bodyParser = require("body-parser");
 const mime = require("mime-types");
 
-const {
-  extractText,
-  formatCandidateData,
-  extractStructuredInfo,
-} = require("./resumeParser");
+const { extractText } = require("./resumeParser");
+const { callGPTToParseResume } = require("./openaiService");
 
 const app = express();
 const PORT = 5000;
@@ -27,12 +24,11 @@ app.post("/parse-resume", async (req, res) => {
     const mimeType = mime.lookup(resume.name) || resume.mimetype;
     const text = await extractText(resume.data, mimeType);
 
-    const parsedData = require("./resumeParser").extractStructuredInfo(text);
-    const response = formatCandidateData(resume, parsedData);
+    const parsedData = await callGPTToParseResume(text);
 
-    return res.status(200).json(response);
+    return res.status(200).json({ success: true, data: parsedData });
   } catch (err) {
-    console.error("Error parsing resume:", err);
+    console.error("❌ Error parsing resume:", err);
     res
       .status(500)
       .json({ success: false, message: "Failed to process resume." });
